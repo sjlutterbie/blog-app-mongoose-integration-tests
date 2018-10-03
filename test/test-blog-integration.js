@@ -1,5 +1,10 @@
 'use strict';
 
+// KNOWN ISSUE
+//  The GET and POST endpoints fail because the post.created date formats
+//    do not match, and I cannot figure out how to make them do so. The data
+//    looks to be correct, it's just the formatting that is incorrect.
+
 // Load modules
 const chai = require('chai');
 const chaiHttp = require('chai-http');
@@ -205,6 +210,34 @@ describe('Blog API resource', function() {
           .then(function(post) {
             expect(post.title).to.equal(updateData.title);
             expect(post.content).to.equal(updateData.content);
+          });
+      });
+    });
+    
+    describe('DELETE endpoint', function() {
+      // Strategy:
+      //  1. Get a post
+      //  2. Make a DELETE request for that post's id
+      //  3. Prove that response has right status code
+      //  4. Prove that post with the id no longer exists in db
+      
+      it('should delete a post by id', function() {
+        
+        // Make post available to multiple calls
+        let post;
+        
+        return BlogPost
+          .findOne()
+          .then(function(_post) {
+            post = _post;
+            return chai.request(app).delete(`/posts/${post.id}`);
+          })
+          .then(function(res) {
+            expect(res).to.have.status(204);
+            return BlogPost.findById(post.id);
+          })
+          .then(function(_post) {
+            expect(_post).to.be.null;
           });
       });
     });
