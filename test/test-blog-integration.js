@@ -171,6 +171,42 @@ describe('Blog API resource', function() {
       });
     });
     
-    
+    describe('PUT endpoint', function() {
+      // Strategy
+      //  1. Get existing blog post from db
+      //  2. Make a PUT request to update post
+      //  3. Prove post returned contains the data we sent
+      //  4. Prove restaurant in db is correctly updated
+      
+      it('should update fields you send over', function() {
+        
+        const updateData = {
+          title: "Test title",
+          content: "Test content"
+        };
+        
+        
+        // Get initial data
+        return BlogPost
+          .findOne()
+          .then(function(post) {
+            updateData.id = post.id;
+            
+            // Make request, then inspect response
+            return chai.request(app)
+              .put(`/posts/${post.id}`)
+              .send(updateData);
+          })
+          .then(function(res) {
+            expect(res).to.have.status(204);
+            
+            return BlogPost.findById(updateData.id);
+          })
+          .then(function(post) {
+            expect(post.title).to.equal(updateData.title);
+            expect(post.content).to.equal(updateData.content);
+          });
+      });
+    });
   
 });
